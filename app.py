@@ -59,7 +59,11 @@ def analyze_stock(stock_data, cpi_data, expected_inflation):
     future_prices_arima = model_arima.predict(1).iloc[0]  # 1 is the number of steps to forecast
     st.write(f"Predicted Price Change for Future Inflation (ARIMA): {future_prices_arima}")
 
-    return correlation_close_cpi, adjusted_correlation, future_prices_lr[0], future_prices_arima
+    # Display the latest actual price
+    latest_actual_price = merged_data['Close'].iloc[-1]
+    st.write(f"Latest Actual Price for {stock_data.name}: {latest_actual_price}")
+
+    return correlation_close_cpi, adjusted_correlation, future_prices_lr[0], future_prices_arima, latest_actual_price
 
 # Streamlit UI
 st.title("Stock-CPI Correlation Analysis with Expected Inflation and Price Prediction")
@@ -73,18 +77,20 @@ if train_model_button:
     expected_correlations = []
     future_prices_lr_list = []
     future_prices_arima_list = []
+    latest_actual_prices = []
     stock_names = []
 
     for stock_file in stock_files:
         st.write(f"\nTraining for {stock_file}...")
         selected_stock_data = pd.read_excel(os.path.join(stock_folder, stock_file))
         selected_stock_data.name = stock_file  # Assign a name to the stock_data for reference
-        actual_corr, expected_corr, future_price_lr, future_price_arima = analyze_stock(selected_stock_data, cpi_data, expected_inflation)
+        actual_corr, expected_corr, future_price_lr, future_price_arima, latest_actual_price = analyze_stock(selected_stock_data, cpi_data, expected_inflation)
         
         actual_correlations.append(actual_corr)
         expected_correlations.append(expected_corr)
         future_prices_lr_list.append(future_price_lr)
         future_prices_arima_list.append(future_price_arima)
+        latest_actual_prices.append(latest_actual_price)
         stock_names.append(stock_file)
 
     # Display overall summary in a table
@@ -93,7 +99,8 @@ if train_model_button:
         'Actual Correlation': actual_correlations,
         f'Expected Correlation (Inflation={expected_inflation})': expected_correlations,
         'Predicted Price Change (Linear Regression)': future_prices_lr_list,
-        'Predicted Price Change (ARIMA)': future_prices_arima_list
+        'Predicted Price Change (ARIMA)': future_prices_arima_list,
+        'Latest Actual Price': latest_actual_prices
     }
     summary_df = pd.DataFrame(summary_data)
     st.write("\nCorrelation and Price Prediction Summary:")
