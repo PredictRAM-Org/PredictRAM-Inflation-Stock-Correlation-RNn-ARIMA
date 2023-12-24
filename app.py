@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import streamlit as st
 from sklearn.linear_model import LinearRegression
-from statsmodels.tsa.arima.model import ARIMA as arima_model
+from pmdarima import auto_arima
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -48,16 +48,15 @@ def analyze_stock(stock_data, cpi_data, expected_inflation):
     y_lr = merged_data['Close']
     model_lr.fit(X_lr, y_lr)
 
-    # Train ARIMA model
-    model_arima = ARIMA(y_lr, order=(5,1,0))  # ARIMA order is an example, adjust as needed
-    results_arima = model_arima.fit()
-
+    # Train ARIMA model using auto_arima
+    model_arima = auto_arima(y_lr, seasonal=False, suppress_warnings=True)
+    
     # Predict future prices based on Linear Regression
     future_prices_lr = model_lr.predict([[expected_inflation]])
     st.write(f"Predicted Price Change for Future Inflation (Linear Regression): {future_prices_lr[0]}")
 
     # Predict future prices based on ARIMA
-    future_prices_arima = results_arima.forecast(steps=1)[0]
+    future_prices_arima = model_arima.predict(1)[0]  # 1 is the number of steps to forecast
     st.write(f"Predicted Price Change for Future Inflation (ARIMA): {future_prices_arima}")
 
     return correlation_close_cpi, adjusted_correlation, future_prices_lr[0], future_prices_arima
