@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import streamlit as st
 from sklearn.linear_model import LinearRegression
-from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.arima.model import ARIMA as arima_model
 import matplotlib.pyplot as plt
 import seaborn as sns
 
